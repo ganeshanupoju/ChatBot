@@ -85,40 +85,9 @@ export function useVoice() {
   }, [state.isRecording]);
 
   const transcribeAudio = useCallback(async (audioBlob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      try {
-        // Use Web Speech API for transcription
-        const recognition = new (window as any).webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          resolve(transcript);
-        };
-
-        recognition.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          reject(new Error('Speech recognition failed'));
-        };
-
-        recognition.onend = () => {
-          // Recognition ended
-        };
-
-        // Start recognition
-        recognition.start();
-
-        // Play the audio to trigger recognition
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audio.play().catch(console.error);
-
-      } catch (error) {
-        reject(error);
-      }
-    });
+    // For now, we'll handle transcription in the component directly
+    // This method is kept for future enhancement
+    return Promise.resolve('');
   }, []);
 
   const clearError = useCallback(() => {
@@ -139,5 +108,6 @@ export function useVoice() {
     startRecording,
     stopRecording,
     clearError,
+    setState,
   };
 }

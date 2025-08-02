@@ -1,8 +1,8 @@
-# AI Chat Application
+# Revolt Motors Voice Chatbot
 
 ## Overview
 
-This is a real-time AI chatbot application built with a modern web stack. The application provides an interactive chat interface where users can communicate with an AI assistant through WebSocket connections. The frontend is built with React and Vite, featuring a clean UI powered by shadcn/ui components and Tailwind CSS. The backend uses Express.js with WebSocket support for real-time communication and includes a simple rule-based chatbot service that responds to user messages with contextual replies.
+This is a voice-enabled AI chatbot application for Revolt Motors, built with modern web technologies. The application provides both text and voice conversation interfaces where users can communicate with "Rev," an AI assistant specialized in Revolt Motors electric motorcycles. The frontend is built with React and Vite, featuring voice recognition, text-to-speech, and a clean UI powered by shadcn/ui components. The backend uses Express.js with WebSocket support and integrates with Google's Gemini API for intelligent responses about Revolt Motors products and services.
 
 ## User Preferences
 
@@ -20,10 +20,11 @@ Preferred communication style: Simple, everyday language.
 - **Real-time Communication**: WebSocket connection for live chat functionality
 
 ### Backend Architecture
-- **Server Framework**: Express.js providing RESTful API capabilities
+- **Server Framework**: Express.js providing RESTful API capabilities and voice processing
 - **WebSocket Server**: Built-in WebSocket server for real-time bidirectional communication
-- **Session Management**: UUID-based session tracking for chat conversations
-- **Chatbot Service**: Rule-based AI assistant with keyword matching and contextual responses
+- **Session Management**: UUID-based session tracking for voice and text conversations
+- **AI Service**: Google Gemini API integration with Revolt Motors-specific system instructions
+- **Voice Processing**: WebSocket-based voice message handling and response generation
 - **Storage Layer**: In-memory storage implementation with interface for future database integration
 
 ### Data Storage Solutions

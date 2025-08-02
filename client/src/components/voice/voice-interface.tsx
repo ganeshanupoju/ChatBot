@@ -59,44 +59,71 @@ export function VoiceInterface({
       }
 
       try {
-        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-        const recognition = new SpeechRecognition();
-        
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-
-        recognition.onstart = () => {
-          setTranscribedText("");
-          // Simulate recording state
-          voice.startRecording();
-        };
-
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          setTranscribedText(transcript);
-          onVoiceMessage(transcript);
-          voice.stopRecording();
-        };
-
-        recognition.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          voice.stopRecording();
-        };
-
-        recognition.onend = () => {
-          voice.stopRecording();
-        };
-
         // Stop any current TTS and interrupt
         if (tts.isSpeaking) {
           tts.stop();
           onInterrupt();
         }
 
+        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
+
+        let isRecognizing = false;
+
+        recognition.onstart = () => {
+          console.log('Speech recognition started');
+          setTranscribedText("");
+          isRecognizing = true;
+          // Manually set recording state
+          voice.setState?.(prev => ({ ...prev, isRecording: true, error: null }));
+        };
+
+        recognition.onresult = (event: any) => {
+          console.log('Speech recognition result:', event);
+          if (event.results && event.results[0]) {
+            const transcript = event.results[0][0].transcript;
+            console.log('Transcript:', transcript);
+            setTranscribedText(transcript);
+            onVoiceMessage(transcript);
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          isRecognizing = false;
+          voice.setState?.(prev => ({ 
+            ...prev, 
+            isRecording: false, 
+            error: `Voice recognition error: ${event.error}. Please try again.` 
+          }));
+        };
+
+        recognition.onend = () => {
+          console.log('Speech recognition ended');
+          isRecognizing = false;
+          voice.setState?.(prev => ({ ...prev, isRecording: false }));
+        };
+
         recognition.start();
+        
+        // Fallback timeout to stop recording after 10 seconds
+        setTimeout(() => {
+          if (isRecognizing) {
+            recognition.stop();
+          }
+        }, 10000);
+
       } catch (error) {
-        console.error('Speech recognition error:', error);
+        console.error('Speech recognition setup error:', error);
+        voice.setState?.(prev => ({ 
+          ...prev, 
+          error: 'Failed to start voice recognition. Please check your microphone permissions.' 
+        }));
       }
     }
   };

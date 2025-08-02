@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { MessageList } from "@/components/chat/message-list";
 import { MessageInput } from "@/components/chat/message-input";
-import { VoiceInterface } from "@/components/voice/voice-interface";
+import { SimpleVoiceInterface } from "@/components/voice/simple-voice-interface";
 import { useWebSocket } from "@/hooks/use-websocket";
 
 export default function Chat() {
@@ -31,7 +31,7 @@ export default function Chat() {
       <MessageList messages={messages} isTyping={isTyping} />
       
       {isVoiceMode ? (
-        <VoiceInterface
+        <SimpleVoiceInterface
           onVoiceMessage={sendVoiceMessage}
           onInterrupt={sendInterrupt}
           isConnected={isConnected}
@@ -48,7 +48,7 @@ export default function Chat() {
             error={error}
             onClearError={clearError}
           />
-          <VoiceInterface
+          <SimpleVoiceInterface
             onVoiceMessage={sendVoiceMessage}
             onInterrupt={sendInterrupt}
             isConnected={isConnected}
