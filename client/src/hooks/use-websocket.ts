@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import type { Message } from '@shared/schema';
 
 export interface WebSocketMessage {
-  type: 'message' | 'error' | 'typing';
+  type: 'message' | 'error' | 'typing' | 'voice_response' | 'interrupted';
   data: any;
 }
 
@@ -11,6 +11,8 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastBotMessage, setLastBotMessage] = useState<string>("");
+  const [shouldSpeak, setShouldSpeak] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -36,6 +38,18 @@ export function useWebSocket() {
             case 'message':
               setMessages(prev => [...prev, message.data]);
               setIsTyping(false);
+              if (message.data.sender === 'bot') {
+                setLastBotMessage(message.data.content);
+                setShouldSpeak(false);
+              }
+              break;
+            case 'voice_response':
+              setMessages(prev => [...prev, message.data]);
+              setIsTyping(false);
+              if (message.data.sender === 'bot') {
+                setLastBotMessage(message.data.content);
+                setShouldSpeak(message.data.shouldSpeak || false);
+              }
               break;
             case 'error':
               setError(message.data.message);
@@ -43,6 +57,9 @@ export function useWebSocket() {
               break;
             case 'typing':
               setIsTyping(message.data.isTyping);
+              break;
+            case 'interrupted':
+              setShouldSpeak(false);
               break;
           }
         } catch (err) {
@@ -85,6 +102,28 @@ export function useWebSocket() {
     }
   }, []);
 
+  const sendVoiceMessage = useCallback((transcribedText: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      setIsTyping(true);
+      wsRef.current.send(JSON.stringify({
+        type: 'voice_message',
+        data: { transcribedText }
+      }));
+      setError(null);
+    } else {
+      setError('Not connected to server');
+    }
+  }, []);
+
+  const sendInterrupt = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'interrupt',
+        data: {}
+      }));
+    }
+  }, []);
+
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -105,7 +144,11 @@ export function useWebSocket() {
     messages,
     isTyping,
     error,
+    lastBotMessage,
+    shouldSpeak,
     sendMessage,
+    sendVoiceMessage,
+    sendInterrupt,
     clearError: () => setError(null),
   };
 }
